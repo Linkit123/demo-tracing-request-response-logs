@@ -1,11 +1,15 @@
 package com.dvtt.demo.utils;
 
+import com.dvtt.demo.coredemo.thread.ThreadContextKeeper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import static com.dvtt.demo.coredemo.thread.ThreadContextKeeper.getRequestAttributes;
+import static com.dvtt.demo.utils.CoreUtils.TRACING_ID;
 
 /**
  * Created by linhtn on 1/3/2022.
@@ -18,6 +22,7 @@ public class HttpUtils {
                 .build().toString();
         var headers = new HttpHeaders();
         headers.set(HttpHeaders.ACCEPT_LANGUAGE, "vi-VN");
+        headers.set(TRACING_ID, getRequestAttributes().getTracingId());
 
         var exchange = restTemplate.exchange(uri, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
         return exchange.getBody();
@@ -28,6 +33,8 @@ public class HttpUtils {
                 .build().toString();
         var headers = new HttpHeaders();
         headers.set(HttpHeaders.ACCEPT_LANGUAGE, "vi-VN");
+        headers.set(TRACING_ID, getRequestAttributes().getTracingId());
+
         var exchange = restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), String.class);
         return exchange.getBody();
     }

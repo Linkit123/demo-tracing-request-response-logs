@@ -1,17 +1,23 @@
 package com.dvtt.demo.coredemo.interceptor;
 
-import com.dvtt.demo.coredemo.thread.ThreadContextKeeper;
+import com.dvtt.demo.coredemo.wrappers.BufferedClientHttpResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.slf4j.MDC;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
+import static com.dvtt.demo.coredemo.thread.ThreadContextKeeper.getRequestAttributes;
+import static com.dvtt.demo.utils.CoreUtils.TRACING_ID;
 
 @Slf4j
 @AllArgsConstructor
@@ -19,31 +25,39 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        logRequest(request, body);
-        ClientHttpResponse response = execution.execute(request, body);
-        logResponse(response);
+        var watcher = new StopWatch();
+        watcher.start();
+        var requestAttributes = getRequestAttributes();
+        String tracingId = requestAttributes.getTracingId();
+        if (ObjectUtils.isEmpty(tracingId)) {
+            tracingId = UUID.randomUUID().toString();
+            requestAttributes.setTracingId(tracingId);
+        }
+        MDC.put(TRACING_ID, tracingId);
+        var response = execution.execute(request, body);
+        response = new BufferedClientHttpResponse(response);
+        this.logResponse(request, response, body, watcher);
         return response;
     }
 
-    private void logRequest(HttpRequest request, byte[] body) {
-        String requestId = ThreadContextKeeper.getRequestAttributes().getRequestId();
-        request.getHeaders().add("request_id", requestId);
-        log.info("===========================request begin {}================================================", requestId);
-        log.info("URI         : {}", request.getURI());
-        log.info("Method      : {}", request.getMethod());
-        log.info("Headers     : {}", request.getHeaders());
-        log.info("Request body: {}", new String(body, StandardCharsets.UTF_8));
-        log.info("==========================request end {}================================================", requestId);
-    }
+    private void logResponse(HttpRequest request, ClientHttpResponse response, byte[] body, StopWatch watcher) throws IOException {
+        var data = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
+        watcher.stop();
+        String stringBuilder = "[REQ_HTTP_LOG] REQUEST: " +
+                "Status code: " + response.getStatusCode() +
+                ", URI: " + request.getURI() +
+                ", Method: " + request.getMethod() +
+                ", Status text: " + response.getStatusText() +
+                ", Request Headers: " + request.getHeaders();
+        if (!ObjectUtils.isEmpty(stringBuilder)) {
+            stringBuilder += ", Request body :" + new String(body, StandardCharsets.UTF_8);
+        }
 
-    private void logResponse(ClientHttpResponse response) throws IOException {
-        String requestId = ThreadContextKeeper.getRequestAttributes().getRequestId();
-        log.info("============================response begin {}==========================================", requestId);
-        log.info("Status code  : {}", response.getStatusCode());
-        log.info("Status text  : {}", response.getStatusText());
-        log.info("Headers      : {}", response.getHeaders());
-        log.info("Response body: {}", StreamUtils.copyToString(response.getBody(), Charset.defaultCharset()));
-        log.info("==========================request end {}================================================", requestId);
+        if (!ObjectUtils.isEmpty(stringBuilder)) {
+            stringBuilder += ", Response body: " + data;
+        }
+        stringBuilder += ", Response time :" + watcher.getTotalTimeMillis();
+        log.info(stringBuilder);
     }
 
 }

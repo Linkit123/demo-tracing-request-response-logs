@@ -1,4 +1,4 @@
-package com.vnpay.core.wrappers;
+package com.dvtt.demo.coredemo.wrappers;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

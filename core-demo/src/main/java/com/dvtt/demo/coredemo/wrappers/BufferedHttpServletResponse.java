@@ -3,6 +3,8 @@ package com.dvtt.demo.coredemo.wrappers;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import org.apache.commons.io.output.TeeOutputStream;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.http.MediaType;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
@@ -13,22 +15,30 @@ import java.io.*;
 /**
  * Created by linhtn on 1/21/2022.
  */
-public class CachedBodyHttpServletResponse extends HttpServletResponseWrapper {
+public class BufferedHttpServletResponse extends HttpServletResponseWrapper {
 
     TeeServletOutputStream teeStream;
 
     PrintWriter teeWriter;
 
     ByteArrayOutputStream bos;
+    HttpServletResponse response;
 
-    public CachedBodyHttpServletResponse(HttpServletResponse response) {
+    public BufferedHttpServletResponse(HttpServletResponse response) {
         super(response);
+        this.response = response;
     }
 
     public String getContent() throws IOException {
-        var gson = new Gson();
-        var jsonElement = gson.fromJson(bos.toString(), JsonElement.class);
-        return gson.toJson(jsonElement);
+        if (!ObjectUtils.isEmpty(response.getContentType()) && response.getContentType().equals(MediaType.APPLICATION_JSON_VALUE)) {
+            var gson = new Gson();
+            var jsonElement = gson.fromJson(bos.toString(), JsonElement.class);
+            return gson.toJson(jsonElement);
+        }
+        if (ObjectUtils.isEmpty(bos)) {
+            return "";
+        }
+        return bos.toString();
     }
 
     @Override

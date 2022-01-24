@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.http.MediaType;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -16,16 +18,20 @@ import java.io.IOException;
  * Created by linhtn on 1/21/2022.
  */
 @Slf4j
-public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
+public class BufferedHttpServletRequest extends HttpServletRequestWrapper {
 
     public final String payload;
 
-    public CachedBodyHttpServletRequest(HttpServletRequest request) throws IOException {
+    public BufferedHttpServletRequest(HttpServletRequest request) throws IOException {
         super(request);
-
-        var gson = new Gson();
-        var jsonElement = gson.fromJson(IOUtils.toString(request.getReader()), JsonElement.class);
-        payload = gson.toJson(jsonElement);
+        String contentBody = IOUtils.toString(request.getReader());
+        if (!ObjectUtils.isEmpty(request.getContentType()) && request.getContentType().equals(MediaType.APPLICATION_JSON_VALUE)) {
+            var gson = new Gson();
+            var jsonElement = gson.fromJson(contentBody, JsonElement.class);
+            payload = gson.toJson(jsonElement);
+        } else {
+            payload = contentBody;
+        }
     }
 
     @Override

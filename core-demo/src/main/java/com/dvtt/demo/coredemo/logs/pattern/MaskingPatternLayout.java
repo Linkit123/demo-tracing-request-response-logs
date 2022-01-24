@@ -1,4 +1,4 @@
-package com.vnpay.core.logs.pattent;
+package com.dvtt.demo.coredemo.logs.pattern;
 
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -52,7 +52,7 @@ public class MaskingPatternLayout extends PatternLayout {
                         final int endIndex3 = message.indexOf(")", startIndex);
                         final int endIndex4 = message.indexOf("\n", startIndex);
 
-                        final Integer endIndex = getSmallestInt(
+                        final int endIndex = getSmallestInt(
                                 Arrays.asList(endIndex1, endIndex2, endIndex3, endIndex4));
                         if (endIndex <= 0) {
                             continue;

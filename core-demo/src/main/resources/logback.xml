@@ -1,17 +1,22 @@
 <configuration>
     <property name="LOG_DIR" value="/var/logs/demo/distributed-tracing/handmade" />
+
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
+        <layout class="com.dvtt.demo.coredemo.logs.pattern.MaskingPatternLayout">
+            <patternsProperty>(password)|(email)</patternsProperty>
             <Pattern>
-                %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - %msg%n
+                %d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{15} - tracing_id: %X{tracing_id} - %msg%n
             </Pattern>
         </layout>
     </appender>
 
     <appender name="LOGFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/name-generator-logger.log</file>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%date %level [%file : %line] %msg%n</pattern>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="com.dvtt.demo.coredemo.logs.pattern.MaskingPatternLayout">
+                <patternsProperty>(password)|(email)</patternsProperty>
+                <pattern>%date %level [%file : %line] %msg%n</pattern>
+            </layout>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
@@ -23,14 +28,10 @@
         </rollingPolicy>
     </appender>
 
-    <logger name="com.vnpay" level="info" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGFILE"/>
-    </logger>
-
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="LOGFILE"/>
     </root>
 
+    <logger name="com.vnpay" level="INFO"/>
 </configuration>

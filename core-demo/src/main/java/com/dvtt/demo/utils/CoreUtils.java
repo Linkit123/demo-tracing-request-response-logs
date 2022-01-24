@@ -1,22 +1,21 @@
-package com.vnpay.core.utils;
+package com.dvtt.demo.utils;
 
+import com.dvtt.demo.coredemo.thread.ThreadContextKeeper;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.vnpay.core.web.contexts.ThreadContextAttributesKeeper;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
-import org.springframework.web.util.ContentCachingResponseWrapper;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.dvtt.demo.coredemo.thread.ThreadContextKeeper.getRequestAttributes;
 
 /**
  * Created by linhtn on 1/13/2022.
@@ -31,7 +30,7 @@ public class CoreUtils {
 
     public static HttpHeaders httpHeaders() {
         var headers = new HttpHeaders();
-        headers.set(TRACING_ID, ThreadContextAttributesKeeper.getRequestAttributes().getTracingId());
+        headers.set(TRACING_ID, getRequestAttributes().getTracingId());
         return headers;
     }
 

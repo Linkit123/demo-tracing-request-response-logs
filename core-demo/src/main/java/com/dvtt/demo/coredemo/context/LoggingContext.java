@@ -6,5 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LoggingContext {
-    private String requestId;
+
+    private String tracingId;
+    private String acceptLanguage;
+
 }
