@@ -41,23 +41,27 @@ public class RestTemplateInterceptor implements ClientHttpRequestInterceptor {
     }
 
     private void logResponse(HttpRequest request, ClientHttpResponse response, byte[] body, StopWatch watcher) throws IOException {
-        var data = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
-        watcher.stop();
-        String stringBuilder = "[REQ_HTTP_LOG] REQUEST: " +
-                "Status code: " + response.getStatusCode() +
-                ", URI: " + request.getURI() +
-                ", Method: " + request.getMethod() +
-                ", Status text: " + response.getStatusText() +
-                ", Request Headers: " + request.getHeaders();
-        if (!ObjectUtils.isEmpty(stringBuilder)) {
-            stringBuilder += ", Request body :" + new String(body, StandardCharsets.UTF_8);
+        try {
+            var data = StreamUtils.copyToString(response.getBody(), StandardCharsets.UTF_8);
+            watcher.stop();
+            String stringBuilder = "[REQ_REST_LOG] ----> " +
+                    "[STATUS CODE: " + response.getStatusCode() + "]" +
+                    ", [URI: " + request.getURI() + "]" +
+                    ", [METHOD: " + request.getMethod() + "]" +
+                    ", [STATUS TEXT: " + response.getStatusText() + "]" +
+                    ", [REQUEST HEADERS: " + request.getHeaders() + "]";
+            if (!ObjectUtils.isEmpty(stringBuilder)) {
+                stringBuilder += ", [REQUEST BODY :" + new String(body, StandardCharsets.UTF_8) + "]";
+            }
+
+            if (!ObjectUtils.isEmpty(stringBuilder)) {
+                stringBuilder += ", [RESPONSE BODY: " + data + "]";
+            }
+            stringBuilder += ", [RESPONSE TIME :" + watcher.getTotalTimeMillis() + "]";
+            log.info(stringBuilder);
+        } catch (Throwable a) {
+            log.error(a.getMessage());
         }
 
-        if (!ObjectUtils.isEmpty(stringBuilder)) {
-            stringBuilder += ", Response body: " + data;
-        }
-        stringBuilder += ", Response time :" + watcher.getTotalTimeMillis();
-        log.info(stringBuilder);
     }
-
 }
