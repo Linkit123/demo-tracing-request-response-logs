@@ -1,5 +1,7 @@
 <configuration>
-    <property name="LOG_DIR" value="/var/logs/demo/distributed-tracing/handmade" />
+    <property name="LOG_DIR" value="/var/logs/demo/tracing-request-response-logs/"/>
+    <property resource="application.properties" />
+    <property name="PROJECT_NAME" value="${application.name}"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="com.dvtt.demo.coredemo.logs.pattern.MaskingPatternLayout">
@@ -11,7 +13,7 @@
     </appender>
 
     <appender name="LOGFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/name-generator-logger.log</file>
+        <file>${LOG_DIR}/${PROJECT_NAME}-logger.log</file>
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="com.dvtt.demo.coredemo.logs.pattern.MaskingPatternLayout">
                 <patternsProperty>(password)|(email)</patternsProperty>
@@ -20,7 +22,7 @@
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily -->
-            <fileNamePattern>${LOG_DIR}/archived/name-generator-logger-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/archived/${PROJECT_NAME}-logger-%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>50MB</maxFileSize>
